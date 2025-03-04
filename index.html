@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>論證小教室</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        #chatBox {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            text-align: left;
+            margin-bottom: 10px;
+        }
+
+        .user-message {
+            color: blue;
+        }
+
+        .ai-message {
+            color: green;
+        }
+
+        #status {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>論證小教室</h1>
+    
+    <div id="status">當前學習階段：評估論證</div>
+
+    <div id="chatBox">
+        <p class="ai-message"><strong>AI:</strong> 你好，歡迎來到論證小教室，今天我們要來學習什麼是論證，你知道什麼是論證嗎？</p>
+    </div>
+
+    <input type="text" id="userInput" placeholder="輸入你的回答..." style="width: 80%;">
+    
+    <!-- 🔹 新增 AI 模型選擇 -->
+    <select id="modelSelect">
+        <option value="chatgpt">ChatGPT</option>
+        <option value="ollama">Ollama</option>
+    </select>
+
+    <button onclick="sendMessage()">送出</button>
+
+    <script>
+        async function sendMessage() {
+            const userInput = document.getElementById("userInput").value;
+            const chatBox = document.getElementById("chatBox");
+            const model = document.getElementById("modelSelect").value; // 取得選擇的模型
+
+            if (!userInput) return;
+
+            // 顯示使用者輸入的訊息
+            chatBox.innerHTML += `<p class="user-message"><strong>你:</strong> ${userInput}</p>`;
+            document.getElementById("userInput").value = ""; // 清空輸入框
+
+            // 呼叫後端 API
+            const response = await fetch("http://localhost:3000/api/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: userInput, model: model }) // 傳送選擇的模型
+            });
+
+            const data = await response.json();
+
+            // 顯示 AI 回應，標明使用的模型
+            chatBox.innerHTML += `<p class="ai-message"><strong>AI (${model}):</strong> ${data.response}</p>`;
+            console.log(data.nextState);
+            // 更新學習狀態顯示
+            let stateText = data.nextState;
+            document.getElementById("status").innerText = `當前學習階段：${stateText}`;
+
+            // 滾動到底部
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    </script>
+
+</body>
+
+</html>
